@@ -9,8 +9,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/nhvtran/info344-in-class/zipsvr/handlers"
 	"github.com/nhvtran/info344-in-class/zipsvr/models"
 )
+
+const zipsPath = "/zips/"
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
@@ -49,6 +52,13 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", helloHandler)
 	mux.HandleFunc("/memory", memoryHandler)
+
+	cityHandler := &handlers.CityHandler{
+		Index:      cityIndex,
+		PathPrefix: zipsPath,
+	}
+	mux.Handle(zipsPath, cityHandler)
+
 	fmt.Printf("server is listening at http://%s\n", addr)
 	log.Fatal(http.ListenAndServe("localhost:4000", mux))
 }
