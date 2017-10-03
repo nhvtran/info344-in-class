@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
+	"strings"
+
+	"github.com/nhvtran/info344-in-class/zipsvr/models"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,10 +29,26 @@ func memoryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	addr := os.Getenv("ADDR")
+	if len(addr) == 0 {
+		addr = ":80"
+	}
+	zips, err := models.LoadZips("zips.csv")
+	if err != nil {
+		log.Fatalf("error loading zips: %v", err)
+	}
+	log.Printf("loaded %d zips", len(zips))
+
+	cityIndex := models.ZipIndex{}
+	for _, z := range zips {
+		cityLower := strings.ToLower(z.City)
+		cityIndex[cityLower] = append(cityIndex[cityLower], z)
+	}
+
 	// fmt.Println("Hello World!")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", helloHandler)
 	mux.HandleFunc("/memory", memoryHandler)
-	fmt.Printf("server is listening at http://localhost:4000\n")
+	fmt.Printf("server is listening at http://%s\n", addr)
 	log.Fatal(http.ListenAndServe("localhost:4000", mux))
 }
